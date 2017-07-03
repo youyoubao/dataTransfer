@@ -7,9 +7,6 @@ include BASEDIR . "/Library/Loader.php";
 spl_autoload_register('\Data\Library\Loader::autoloder');
 
 include "config.php";
-if (!empty($argv['1']) && file_exists("config/config_" . $argv['1'] . ".php")) {
-    include "config/config_" . $argv['1'] . ".php";
-}
 
 /**
  * 数据迁移
