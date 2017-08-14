@@ -34,7 +34,7 @@ class Db
             }
             return $ret;
         } else {
-            return $query;
+            return mysqli_insert_id($db1);
         }
     }
     public static function delDbPool($taskid)
