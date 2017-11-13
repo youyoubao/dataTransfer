@@ -155,6 +155,7 @@ class DataTransfer
         while (!$rs) {
             //执行出错时，一直重试。关闭数据库连接，sleep 5秒
             \Data\Library\Db::delDbPool($taskid);
+            \Data\Models\Models::delObj($tablename);
             echo "\n 处理( $tablename, $startid, $endid )出错，释放所有资源并重新连接mysql \n";
             sleep(5);
             $rs = $obj->run($tablename, $startid, $endid, $taskid);
