@@ -14,6 +14,13 @@ class Models
         }
         return self::$ModelArr[md5($tablename)];
     }
+    
+    //释放资源
+    public static function delObj($tablename) {
+        if(isset(self::$ModelArr[md5($tablename)])) {
+            unset(self::$ModelArr[md5($tablename)]);
+        }
+    }
 
     /**
      * 根据tablename获取Models对象
