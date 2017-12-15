@@ -1,20 +1,17 @@
 <?php
-$client = new swoole_client(SWOOLE_SOCK_TCP, SWOOLE_SOCK_SYNC);
 
+$client = new swoole_client(SWOOLE_SOCK_TCP, SWOOLE_SOCK_SYNC);
 if (!$client->connect('172.17.16.102', 9501, -1)) {
     exit("connect failed. Error: {$client->errCode}\n");
 }
-$_GET['single']    = 1;
-$_GET['tablename'] = 'productinfo.pd_info';
-$_GET['id']        = 77565627;
 
-// $_GET['reassign'] = 1;
 //设置处理进程数量，需要手动修改config.php配置文件
 if (isset($_GET['reassign']) && $_GET['reassign'] == 1) {
     $client->send("reassign");
     $str = $client->recv();
     $client->close();
-    echo $str;
+    var_dump($str);
+    echo "<br/>".' <a href="/client.php">Go Back<a> ';
     die;
 } elseif (isset($_GET['single']) && $_GET['single'] == 1) {
     //从队列读数据，单独更新一条记录
@@ -24,7 +21,8 @@ if (isset($_GET['reassign']) && $_GET['reassign'] == 1) {
     $client->send("singleData-" . $tablename . "-" . $id);
     $str = $client->recv();
     $client->close();
-    echo $str;
+    var_dump($str);
+    echo "<br/>".' <a href="/client.php">Go Back<a> ';
     die;
 } elseif (isset($_GET['setcurId'])) {
     //动态设置表的执行开始ID
@@ -33,12 +31,12 @@ if (isset($_GET['reassign']) && $_GET['reassign'] == 1) {
     $client->send("setCurID-" . $tablename . "-" . $id);
     $str = $client->recv();
     $client->close();
-    echo $str;
+    var_dump($str);
+    echo "<br/>".' <a href="/client.php">Go Back<a> ';
     die;
 }
 
 $client->send("getinfo");
-sleep(1);
 $str = $client->recv();
 $client->close();
 
@@ -47,10 +45,6 @@ $taskinfo  = json_decode($a['0'], true);
 $tableinfo = json_decode($a['1'], true);
 $inf       = json_decode($a['2'], true);
 
-print_r($taskinfo);
-print_r($tableinfo);
-print_r($inf);
-die;
 ?>
 	<h1><center>数据迁移</center></h1>
 	<h2>处理进度：</h2>
@@ -81,5 +75,4 @@ foreach ($tableinfo as $v) {
     }
     echo "</div>";
 }
-
-?>
+echo '<div style="line-height:60px; color:#666;"> 修改进程数量方法： 1： 手动修改 /data/home/dataTransfer/config.php 文件 2：<a href="?reassign=1"> 点击生效 </a></div>';
