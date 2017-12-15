@@ -21,6 +21,7 @@ class DataTransfer
     private $setting; //设置每个表应该由几个进程来处理
     private $curId; //每个表当前处理到的位置
     private $maxId; //每个表的最大ID
+    private $minId; //记录表的最小ID
     private $taskinfo; //所有task需要处理的表
     private $step = 100; //每次处理的数据数量（以后改成动态可调的）
     public function __construct()
@@ -30,6 +31,7 @@ class DataTransfer
         $this->setting                   = $setting;
         $this->max_task_num              = 50;
         list($this->curId, $this->maxId) = $this->getId();
+        $this->minId = $this->curId;
 
         $this->serv = new \swoole_server("0.0.0.0", 9501);
         $this->serv->set(array(
@@ -195,6 +197,7 @@ class DataTransfer
 
         if (!isset($this->maxId[$tmp]) || !isset($this->curId[$tmp])) {
             list($this->curId, $this->maxId) = $this->getId();
+            $this->minId = $this->curId;
         }
         if (!isset($this->curId[$tmp])) {
             $this->curId[$tmp] = 1;
@@ -310,6 +313,7 @@ class DataTransfer
                 'tablename' => $tablename,
                 'curId'     => $this->curId[str_replace('.', '_', $tablename)],
                 'maxId'     => $this->maxId[str_replace('.', '_', $tablename)],
+                'minId' => $this->minId[str_replace('.', '_', $tablename)],
             );
         }
         $ret .= "\n" . json_encode($status);
