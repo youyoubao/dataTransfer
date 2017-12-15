@@ -29,7 +29,7 @@ class DataTransfer
         global $setting;
         date_default_timezone_set('PRC');
         $this->setting                   = $setting;
-        $this->max_task_num              = 50;
+        $this->max_task_num              = 500;
         list($this->curId, $this->maxId) = $this->getId();
         $this->minId = $this->curId;
 
@@ -317,7 +317,7 @@ class DataTransfer
             );
         }
         $ret .= "\n" . json_encode($status);
-        $ret .= "\n" . json_encode($this->taskinfo);
+        $ret .= "\n" . json_encode(array_filter($this->taskinfo));
         return $ret;
     }
 }
