@@ -44,11 +44,13 @@ $a         = explode("\n", $str);
 $taskinfo  = json_decode($a['0'], true);
 $tableinfo = json_decode($a['1'], true);
 $inf       = json_decode($a['2'], true);
+$time = json_decode($a['3'], true);
 
 ?>
-	<h1><center>数据迁移</center></h1>
-	<h2>处理进度：</h2>
-    <meta charset="utf8">
+<meta charset="utf8">
+<div style="width: 980px; margin: auto;">
+<h1><center>数据迁移</center></h1>
+<h2>已运行：<?php echo intval((time()-$time)/60); ?>分钟 </h2>
 		<?php
 echo "<div style='clear:both; height:40px; width:920px; border-bottom:1px solid #ccc; line-height:40px;'><div style='width:365px; float:left'>表名称</div>";
 echo "<div style='width:235px; float:left'>处理进程数量</div>";
@@ -75,4 +77,5 @@ foreach ($tableinfo as $v) {
     }
     echo "</div>";
 }
-echo '<div style="line-height:60px; color:#666;"> 修改进程数量方法： 1： 手动修改 /data/home/dataTransfer/config.php 文件 2：<a href="?reassign=1"> 点击生效 </a></div>';
+echo '<div style="line-height:30px; margin-top:30px; color:#666;"> 修改进程数量方法：<br> 手动修改 /data/home/dataTransfer/config.php <br>点击<a href="?reassign=1">刷新</a></div>';
+echo "</div>";
