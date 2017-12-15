@@ -77,20 +77,22 @@ class DataTransfer
             $row                = \Data\Library\Db::exeSql($dbType, $sql, 1);
             $max[$tableNameStr] = empty($row['0']) ? 0 : intval(current($row['0']));
 
-            //从目标库中读出相关信息
-            $descSql     = "desc ".$modelObj->descTable;
-            $row         = \Data\Library\Db::exeSql('write', $descSql, 1);
-            $primiaryKey = current($row['0']);
-            
-            $sql = "select * from ".$modelObj->descTable. " order by $primiaryKey DESC limit 0,1";
-            $row                = \Data\Library\Db::exeSql('write', $sql, 1);
-            if (empty($row)) {
-                $descMaxId = 0;
-            } else {
-                $descMaxId = intval(current($row['0']));
-            }
-            if ($descMaxId > $min[$tableNameStr]) {
-                $min[$tableNameStr] = $descMaxId;
+            if($modelObj->descTable) {
+                //从目标库中读出相关信息
+                $descSql     = "desc ".$modelObj->descTable;
+                $row         = \Data\Library\Db::exeSql('write', $descSql, 1);
+                $primiaryKey = current($row['0']);
+                
+                $sql = "select * from ".$modelObj->descTable. " order by $primiaryKey DESC limit 0,1";
+                $row                = \Data\Library\Db::exeSql('write', $sql, 1);
+                if (empty($row)) {
+                    $descMaxId = 0;
+                } else {
+                    $descMaxId = intval(current($row['0']));
+                }
+                if ($descMaxId > $min[$tableNameStr]) {
+                    $min[$tableNameStr] = $descMaxId;
+                }
             }
         }
         unset(\Data\Library\Db::$dbPool['0']);
