@@ -24,10 +24,12 @@ class DataTransfer
     private $minId; //记录表的最小ID
     private $taskinfo; //所有task需要处理的表
     private $step = 100; //每次处理的数据数量（以后改成动态可调的）
+    private $startTime;
     public function __construct()
     {
         global $setting;
         date_default_timezone_set('PRC');
+        $this->startTime = time();
         $this->setting                   = $setting;
         $this->max_task_num              = 500;
         list($this->curId, $this->maxId) = $this->getId();
@@ -320,6 +322,7 @@ class DataTransfer
         }
         $ret .= "\n" . json_encode($status);
         $ret .= "\n" . json_encode(array_filter($this->taskinfo));
+        $ret .= "\n" . $this->startTime;
         return $ret;
     }
 }
