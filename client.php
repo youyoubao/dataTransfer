@@ -1,7 +1,7 @@
 <?php
 
 $client = new swoole_client(SWOOLE_SOCK_TCP, SWOOLE_SOCK_SYNC);
-if (!$client->connect('172.17.16.102', 9501, -1)) {
+if (!$client->connect('127.0.0.1', 9501, -1)) {
     exit("connect failed. Error: {$client->errCode}\n");
 }
 
@@ -69,7 +69,7 @@ foreach ($tableinfo as $v) {
     echo "<div style='width:100px; float:left'>{$v['maxId']}</div>";
     echo "<div style='width:100px; float:left'>{$v['curId']}</div>";
     if ($v['maxId'] > 0) {
-        echo "<div style='width:100px; float:left'>" . round((($v['curId'] - 1) / $v['maxId']) * 100, 2) . "%</div>\n";
+        echo "<div style='width:100px; float:left'>" . round((($v['curId'] - $v['minId'] - 1) / ($v['maxId'] - $v['minId']) ) * 100, 2) . "%</div>\n";
     } else {
         echo "<div style='width:100px; float:left'>100%</div>\n";
     }
