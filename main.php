@@ -179,7 +179,9 @@ class DataTransfer
             $this->taskinfo[$taskid] = '';
         } elseif ($param) {
             echo "\n onFinish : taskid: { $param } ";
-            $this->addTask($this->taskinfo[$param], $param);
+            if($this->taskinfo[$param]) {
+                $this->addTask($this->taskinfo[$param], $param);
+            }
         } else {
             echo "\n close mysqli \n";
         }
