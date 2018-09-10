@@ -1,5 +1,5 @@
 <?php
-namespace Data\Models;
+namespace dormscript\Data\Models;
 
 class Table
 {

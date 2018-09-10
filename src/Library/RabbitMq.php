@@ -1,5 +1,5 @@
 <?php
-namespace Data\Library;
+namespace dormscript\Data\Library;
 
 class RabbitMq
 {

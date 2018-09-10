@@ -1,5 +1,5 @@
 <?php
-namespace Data\Func;
+namespace dormscript\Data\Func;
 
 //数据转移过程中常用的函数
 //demo1：地区ID转换

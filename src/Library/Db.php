@@ -1,5 +1,5 @@
 <?php
-namespace Data\Library;
+namespace dormscript\Data\Library;
 
 //多进程来调用这个Db。如果A进程创建的mysql连接，B进程是不能使用的，所以需要标记连接是哪个进程创建的
 //其实这种方法是有问题的，但在当前情景下可正常运行

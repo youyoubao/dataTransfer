@@ -1,5 +1,5 @@
 <?php
-namespace Data\Models\{$schemaName};
+namespace dormscript\Data\Models\{$schemaName};
 
 class {$modelName} extends \Data\Models\Table
 {

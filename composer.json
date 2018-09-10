@@ -1,0 +1,20 @@
+{
+    "name": "dormscript/data-transfer",
+    "description": "数据迁移框架",
+    "type": "library",
+    "require": {
+        "ext-swoole": "^4.1@alpha"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "shuai wen",
+            "email": "wenshuaiying@gongchang.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "dormscript\\Data": "src/"
+        }
+    }
+}

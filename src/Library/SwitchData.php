@@ -1,5 +1,5 @@
 <?php
-namespace Data\Library;
+namespace dormscript\Data\Library;
 
 /**
  * 根据每个表的配置信息将数据进行格式转移、写入目标数据库

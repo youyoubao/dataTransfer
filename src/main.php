@@ -1,12 +1,8 @@
 <?php
-namespace Data;
+namespace dormscript\Data;
 
 //注册自动加载类
 define("BASEDIR", __DIR__);
-include BASEDIR . "/Library/Loader.php";
-spl_autoload_register('\Data\Library\Loader::autoloder');
-
-include "config.php";
 
 /**
  * 数据迁移
@@ -15,7 +11,7 @@ include "config.php";
  * 3：并行调task对每个数据表进行数据迁移
  * 4：支持动态修改需要转移的表，及每个表应该有多少个进程来转移
  */
-class DataTransfer
+class Main
 {
     private $serv;
     private $setting; //设置每个表应该由几个进程来处理
@@ -327,4 +323,3 @@ class DataTransfer
     }
 }
 
-new DataTransfer();
