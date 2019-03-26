@@ -1,16 +1,6 @@
 <?php
 namespace dormscript\Data;
 
-//注册自动加载类
-define("BASEDIR", __DIR__);
-
-/**
- * 数据迁移
- * 1：从配置文件读取所有需要迁移的数据表
- * 2：获取所有表的最小、最大ID
- * 3：并行调task对每个数据表进行数据迁移
- * 4：支持动态修改需要转移的表，及每个表应该有多少个进程来转移
- */
 class Main
 {
     private $serv;
@@ -19,17 +9,16 @@ class Main
     private $maxId; //每个表的最大ID
     private $minId; //记录表的最小ID
     private $taskinfo; //所有task需要处理的表
-    private $step = 100; //每次处理的数据数量（以后改成动态可调的）
+    private $step = 100; //每次处理的数据数量
     private $startTime;
     public function __construct()
     {
         global $setting;
-        date_default_timezone_set('PRC');
-        $this->startTime = time();
+        $this->startTime                 = time();
         $this->setting                   = $setting;
-        $this->max_task_num              = 500;
+        $this->max_task_num              = 200;
         list($this->curId, $this->maxId) = $this->getId();
-        $this->minId = $this->curId;
+        $this->minId                     = $this->curId;
 
         $this->serv = new \swoole_server("0.0.0.0", 9501);
         $this->serv->set(array(
@@ -53,49 +42,45 @@ class Main
      */
     public function getId()
     {
-        unset(\Data\Library\Db::$dbPool['0']);
         $min = $max = array();
         foreach ($this->setting as $tablename => $taskNum) {
-            $modelObj     = \Data\Models\Models::getObj($tablename);
-            $dbType       = !empty($modelObj->readDbName) ? $modelObj->readDbName : 'read';
-            $tableNameStr = str_replace(".", "_", $tablename);
-            //解决库重名时desc table出错的问题
-            $realTableName = $modelObj->getTablename();
+            $modelObj = Models\Models::getObj($tablename);
+            $dbType   = !empty($modelObj->readDbName) ? $modelObj->readDbName : 'read';
 
             //获取表主键名字
-            $descSql     = "desc $realTableName";
-            $row         = \Data\Library\Db::exeSql($dbType, $descSql, 1);
-            $primiaryKey = current($row['0']);
+            $realTableName = $modelObj->getTablename();
+            $descSql       = "desc $realTableName";
+            $row           = Library\Db::exeSql($dbType, $descSql, 1);
+            $primiaryKey   = current($row['0']);
 
             //查出最小ID
-            $sql                = "select * from $realTableName order by $primiaryKey ASC limit 0,1";
-            $row                = \Data\Library\Db::exeSql($dbType, $sql, 1);
-            $min[$tableNameStr] = empty($row['0']) ? 0 : intval(current($row['0']));
+            $sql             = "select * from $realTableName order by $primiaryKey ASC limit 0,1";
+            $row             = Library\Db::exeSql($dbType, $sql, 1);
+            $min[$tablename] = empty($row['0']) ? 0 : intval(current($row['0']));
 
             //查出最大ID
-            $sql                = "select * from $realTableName order by $primiaryKey DESC limit 0,1";
-            $row                = \Data\Library\Db::exeSql($dbType, $sql, 1);
-            $max[$tableNameStr] = empty($row['0']) ? 0 : intval(current($row['0']));
+            $sql             = "select * from $realTableName order by $primiaryKey DESC limit 0,1";
+            $row             = Library\Db::exeSql($dbType, $sql, 1);
+            $max[$tablename] = empty($row['0']) ? 0 : intval(current($row['0']));
 
-            if($modelObj->descTable) {
+            if ($modelObj->descTable) {
                 //从目标库中读出相关信息
-                $descSql     = "desc ".$modelObj->descTable;
-                $row         = \Data\Library\Db::exeSql('write', $descSql, 1);
+                $descSql     = "desc " . $modelObj->descTable;
+                $row         = Library\Db::exeSql('write', $descSql, 1);
                 $primiaryKey = current($row['0']);
-                
-                $sql = "select * from ".$modelObj->descTable. " order by $primiaryKey DESC limit 0,1";
-                $row                = \Data\Library\Db::exeSql('write', $sql, 1);
+
+                $sql = "select * from " . $modelObj->descTable . " order by $primiaryKey DESC limit 0,1";
+                $row = Library\Db::exeSql('write', $sql, 1);
                 if (empty($row)) {
                     $descMaxId = 0;
                 } else {
                     $descMaxId = intval(current($row['0']));
                 }
-                if ($descMaxId > $min[$tableNameStr]) {
-                    $min[$tableNameStr] = $descMaxId;
+                if ($descMaxId > $min[$tablename]) {
+                    $min[$tablename] = $descMaxId;
                 }
             }
         }
-        unset(\Data\Library\Db::$dbPool['0']);
         return array($min, $max);
     }
 
@@ -145,19 +130,13 @@ class Main
     {
         //处理数据表tablename中ID>=$startid && $ID<$startid+100的记录
         list($tablename, $startid, $endid, $taskid) = $param;
-
-        if ($tablename == "delDb" && $startid = -1 && $endid = -1) {
-            //删除mysql连接请求
-            \Data\Library\Db::delDbPool($taskid);
-            return false;
-        }
         echo "\n OnTask: $taskid \t $tablename \t $startid - $endid ";
         $obj = new Library\SwitchData();
         $rs  = $obj->run($tablename, $startid, $endid, $taskid, $serv);
         while (!$rs) {
             //执行出错时，一直重试。关闭数据库连接，sleep 5秒
-            \Data\Library\Db::delDbPool($taskid);
-            \Data\Models\Models::delObj($tablename);
+            Library\Db::delDbPool();
+            Models\Models::delObj($tablename);
             echo "\n 处理( $tablename, $startid, $endid )出错，释放所有资源并重新连接mysql \n";
             sleep(5);
             $rs = $obj->run($tablename, $startid, $endid, $taskid);
@@ -177,7 +156,7 @@ class Main
             $this->taskinfo[$taskid] = '';
         } elseif ($param) {
             echo "\n onFinish : taskid: { $param } ";
-            if($this->taskinfo[$param]) {
+            if ($this->taskinfo[$param]) {
                 $this->addTask($this->taskinfo[$param], $param);
             }
         } else {
@@ -197,7 +176,7 @@ class Main
 
         if (!isset($this->maxId[$tmp]) || !isset($this->curId[$tmp])) {
             list($this->curId, $this->maxId) = $this->getId();
-            $this->minId = $this->curId;
+            $this->minId                     = $this->curId;
         }
         if (!isset($this->curId[$tmp])) {
             $this->curId[$tmp] = 1;
@@ -223,7 +202,6 @@ class Main
         $Ids = $this->getcurId($tablename); //获取开始ID
         if ($Ids === false) {
             $this->taskinfo[$taskid] = '';
-            $this->delDb($taskid);
             return false;
         }
         list($startid, $endid) = $Ids;
@@ -231,15 +209,6 @@ class Main
         echo "\n addTask: { $taskid }";
         $this->taskinfo[$taskid] = $tablename; //taskid这个进程用来处理tablename。在进行进程数量调整之前，taskid不会去处理其它表数据
         $this->serv->task(array($tablename, $startid, $endid, $taskid), $taskid); //投递task任务
-    }
-    /**
-     * 断开task中的数据库连接
-     * @param  int $taskid 进程ID
-     * @return [type]         [description]
-     */
-    private function delDb($taskid)
-    {
-        $this->serv->task(array("delDb", -1, -1, $taskid), $taskid);
     }
 
     /**
@@ -254,7 +223,6 @@ class Main
         for ($i = $this->max_task_num - 100; $i < $this->max_task_num; $i++) {
             if (empty($this->taskinfo[$i])) {
                 $taskid = $i;
-                $this->delDb($taskid);
                 break;
             }
         }
@@ -273,14 +241,13 @@ class Main
     public function reassign()
     {
         $task_work_id = 0;
-        include "config.php";
+        global $setting;
         $this->setting = $setting;
         foreach ($this->setting as $tablename => $maxnum) {
             for ($i = 0; $i < $maxnum; $i++) {
                 $task_work_id += 1;
                 //如果进程正处于休息状态，启动进程
                 if (empty($this->taskinfo[$task_work_id])) {
-                    $this->delDb($task_work_id);
                     $this->addTask($tablename, $task_work_id);
                 } else {
                     $this->taskinfo[$task_work_id] = $tablename;
@@ -313,7 +280,7 @@ class Main
                 'tablename' => $tablename,
                 'curId'     => $this->curId[str_replace('.', '_', $tablename)],
                 'maxId'     => $this->maxId[str_replace('.', '_', $tablename)],
-                'minId' => $this->minId[str_replace('.', '_', $tablename)],
+                'minId'     => $this->minId[str_replace('.', '_', $tablename)],
             );
         }
         $ret .= "\n" . json_encode($status);
@@ -322,4 +289,3 @@ class Main
         return $ret;
     }
 }
-

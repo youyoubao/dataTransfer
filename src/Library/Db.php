@@ -14,19 +14,17 @@ class Db
     {
         global $db;
         $ret = array();
-        if ($taskid == 0) {
-            $taskid = key(end(self::$dbPool));
-        }
-        if (!isset(self::$dbPool[$taskid][$dbname]) || empty(self::$dbPool[$taskid][$dbname])) {
-            $db1 = mysqli_connect($db[$dbname]['host'], $db[$dbname]['user'], $db[$dbname]['pswd']) or die("连接 '" . $dbname . "'库失败");
-            mysqli_query($db1, "SET NAMES 'UTF8'");
-            self::$dbPool[$taskid][$dbname] = $db1;
+
+        if (!isset(self::$dbPool[getmypid()][$dbname]) || empty(self::$dbPool[getmypid()][$dbname])) {
+            $dbConnection = mysqli_connect($db[$dbname]['host'], $db[$dbname]['user'], $db[$dbname]['pswd']) or die("连接 '" . $dbname . "'库失败");
+            mysqli_query($dbConnection, "SET NAMES 'UTF8'");
+            self::$dbPool[getmypid()][$dbname] = $dbConnection;
         } else {
-            $db1 = self::$dbPool[$taskid][$dbname];
+            $dbConnection = self::$dbPool[getmypid()][$dbname];
         }
 
-        if (!$query = mysqli_query($db1, $sql)) {
-            throw new \Exception("出錯的SQL：" . $sql . "\t" . mysqli_errno($db1) . ": " . mysqli_error($db1));
+        if (!$query = mysqli_query($dbConnection, $sql)) {
+            throw new \Exception("出錯的SQL：" . $sql . "\t" . mysqli_errno($dbConnection) . ": " . mysqli_error($dbConnection));
         }
         if ($query instanceof \mysqli_result) {
             while ($row = mysqli_fetch_array($query, MYSQLI_ASSOC)) {
@@ -34,19 +32,17 @@ class Db
             }
             return $ret;
         } else {
-            return mysqli_insert_id($db1);
+            return mysqli_insert_id($dbConnection);
         }
     }
-    public static function delDbPool($taskid)
+    public static function delDbPool()
     {
-        if (empty(self::$dbPool)) {
+        if (empty(self::$dbPool[getmypid()])) {
             return true;
         }
-        foreach (self::$dbPool as $value) {
-            foreach ($value as $dbtype) {
-                mysqli_close($dbtype);
-            }
+        foreach (self::$dbPool[getmypid()] as $value) {
+            mysqli_close($value);
         }
-        self::$dbPool = '';
+        self::$dbPool[getmypid()] = [];
     }
 }

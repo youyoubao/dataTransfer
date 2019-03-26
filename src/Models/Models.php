@@ -14,10 +14,11 @@ class Models
         }
         return self::$ModelArr[md5($tablename)];
     }
-    
+
     //释放资源
-    public static function delObj($tablename) {
-        if(isset(self::$ModelArr[md5($tablename)])) {
+    public static function delObj($tablename)
+    {
+        if (isset(self::$ModelArr[md5($tablename)])) {
             unset(self::$ModelArr[md5($tablename)]);
         }
     }
@@ -29,8 +30,9 @@ class Models
      */
     public static function readFile($tablename)
     {
-        $className = __NAMESPACE__ . '\\' . str_replace(".", '\\', $tablename);
-        $obj       = new $className;
-        return $obj;
+        if (class_exists($tablename)) {
+            return new $tablename;
+        }
+        die("\n表不存在:" . $tablename);
     }
 }

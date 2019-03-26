@@ -3,15 +3,15 @@ namespace dormscript\Data\Models;
 
 class Table
 {
-    public $srcTable  = "";
-    public $descTable = "";
+    public $srcTable  = ""; //从哪个表读数据
+    public $descTable = ""; //写入到哪个库的哪个表，中间用.分隔
 
     public $primaryKey   = ""; //源表的主键名称
     public $srcSql       = ""; // 从源数据表读数据的SQL,可选项
-    public $readDbName   = ""; //源表所在Mysql服务器名称
+    public $readDbName   = "read"; //源表所在Mysql服务器名称
     public $writeDbName  = "write"; //目标所有mysql服务器名称
     public $callbackRow  = 'src'; //callback调取源数据 desc(调取新数据)
-    protected $swooleSer = ''; //在task中获取server
+    protected $swooleSer = ''; //在task中获取server信息
 
     //字段对应关系
     public $fieldMap = array();
@@ -22,9 +22,7 @@ class Table
         if (!empty($this->srcTable)) {
             return $this->srcTable;
         }
-        $className = get_class($this);
-        $tableName = str_replace("\\", ".", str_replace(__NAMESPACE__ . '\\', "", $className));
-        return strtolower($tableName);
+        die("\n" . get_class($this) . " 未配置srcTable");
     }
     public function returnme($p)
     {

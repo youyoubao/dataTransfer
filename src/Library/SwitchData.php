@@ -18,7 +18,7 @@ class SwitchData
         $this->startid   = $startid;
         $this->endid     = $endid;
         $this->taskid    = $taskid;
-        $this->modelObj  = \Data\Models\Models::getObj($tablename); //获取Models对象
+        $this->modelObj  = \dormscript\Data\Models\Models::getObj($tablename); //获取Models对象
 
         if (!empty($ser)) {
             $this->modelObj->setSwooleSer($ser);
@@ -71,7 +71,7 @@ class SwitchData
         $sql .= " where {$this->modelObj->primaryKey} >= {$this->startid} and {$this->modelObj->primaryKey} < {$this->endid} ";
         $sql .= 'order by ' . $this->modelObj->primaryKey . ' ASC';
         $dbType = !empty($this->modelObj->readDbName) ? $this->modelObj->readDbName : 'read';
-        $row    = \Data\Library\Db::exeSql($dbType, $sql, $this->taskid);
+        $row    = \dormscript\Data\Library\Db::exeSql($dbType, $sql, $this->taskid);
         return $row;
     }
 
@@ -87,7 +87,7 @@ class SwitchData
             if (strpos($src, '/') !== false) {
                 $a = explode('/', $src);
                 if (strpos($a[0], ',')) {
-                    $par   = '';
+                    //$par   = '';
                     $param = explode(',', $a[0]);
                     foreach ($param as $p) {
                         if (array_key_exists($p, $row)) {
@@ -149,6 +149,6 @@ class SwitchData
             $sql = substr($sql, 0, -1) . "),";
         }
         $sql = substr($sql, 0, -1);
-        $rs  = \Data\Library\Db::exeSql($this->modelObj->writeDbName, $sql, $this->taskid);
+        $rs  = \dormscript\Data\Library\Db::exeSql($this->modelObj->writeDbName, $sql, $this->taskid);
     }
 }
